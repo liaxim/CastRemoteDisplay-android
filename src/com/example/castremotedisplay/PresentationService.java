@@ -30,6 +30,7 @@ import android.util.Log;
 import android.view.Display;
 import android.view.Surface;
 import android.view.SurfaceHolder;
+import android.view.TextureView;
 import android.view.WindowManager;
 import android.widget.TextView;
 
@@ -119,64 +120,37 @@ public class PresentationService extends CastRemoteDisplayLocalService {
         protected void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
 
-            setContentView(R.layout.first_screen_layout);
+            final TextureView textureView = new TextureView(getContext());
+            setContentView(textureView);
 
-            TextView titleTextView = (TextView) findViewById(R.id.title);
-            // Use TrueType font to get best looking text on remote display
-            Typeface typeface = Typeface.createFromAsset(getAssets(), "fonts/Roboto-Light.ttf");
-            titleTextView.setTypeface(typeface);
-
-            final GLSurfaceView firstScreenSurfaceView = (GLSurfaceView) findViewById(R.id.surface_view);
-            // Create an OpenGL ES 2.0 context.
-            firstScreenSurfaceView.setEGLContextClientVersion(2);
-            // Allow UI elements above this surface; used for text overlay
-            firstScreenSurfaceView.setZOrderMediaOverlay(true);
-            // Enable anti-aliasing
-            firstScreenSurfaceView.setEGLConfigChooser(new CustomConfigChooser());
-
-            mCubeRenderer = new com.example.castremotedisplay.CubeRenderer();
-            firstScreenSurfaceView.setRenderer(mCubeRenderer);
+//            TextView titleTextView = (TextView) findViewById(R.id.title);
+//            // Use TrueType font to get best looking text on remote display
+//            Typeface typeface = Typeface.createFromAsset(getAssets(), "fonts/Roboto-Light.ttf");
+//            titleTextView.setTypeface(typeface);
+//
+//            final GLSurfaceView firstScreenSurfaceView = (GLSurfaceView) findViewById(R.id.surface_view);
+//            // Create an OpenGL ES 2.0 context.
+//            firstScreenSurfaceView.setEGLContextClientVersion(2);
+//            // Allow UI elements above this surface; used for text overlay
+//            firstScreenSurfaceView.setZOrderMediaOverlay(true);
+//            // Enable anti-aliasing
+//            firstScreenSurfaceView.setEGLConfigChooser(new CustomConfigChooser());
+//
+//            mCubeRenderer = new com.example.castremotedisplay.CubeRenderer();
+//            firstScreenSurfaceView.setRenderer(mCubeRenderer);
 //            android.os.Debug.waitForDebugger();
 
             Log.i("mmarinov", "onCreate 1");
 
-            firstScreenSurfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
-                @Override
-                public void surfaceCreated(SurfaceHolder holder) {
-                    Log.i("mmarinov", "surfaceCreated");
+            surfaceTexture = new SurfaceTexture(11);
+            surface = new Surface(surfaceTexture);
 
-                }
+            textureView.setSurfaceTexture(surfaceTexture);
 
-                @Override
-                public void surfaceChanged(final SurfaceHolder holder, int format, int width, int height) {
-                    Log.i("mmarinov", "surfaceChanged");
+            Intent intent = new Intent("com.samsung.mps.gvrf");
+            intent.putExtra("surface", surface);
+            getContext().sendStickyBroadcast(intent);
 
-                    surfaceTexture = new SurfaceTexture(11);
-                    surfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
-                        @Override
-                        public void onFrameAvailable(final SurfaceTexture surfaceTexture) {
-                            Log.i("mmarinov", "onFrameAvailable 111");
-                            firstScreenSurfaceView.queueEvent(new Runnable() {
-                                @Override
-                                public void run() {
-                                    surfaceTexture.updateTexImage();
-                                }
-                            });
-                        }
-                    });
-                    surface = new Surface(surfaceTexture);
-
-                    Intent intent = new Intent("com.samsung.mps.gvrf");
-//                    intent.getParcelableExtra()
-                    intent.putExtra("surface", surface);
-                    getContext().sendStickyBroadcast(intent);
-                }
-
-                @Override
-                public void surfaceDestroyed(SurfaceHolder holder) {
-                    Log.i("mmarinov", "surfaceDestroyed");
-                }
-            });
             Log.i("mmarinov", "onCreate 2");
         }
 
