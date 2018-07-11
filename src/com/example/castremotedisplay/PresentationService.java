@@ -20,12 +20,14 @@ import com.google.android.gms.cast.CastPresentation;
 import com.google.android.gms.cast.CastRemoteDisplayLocalService;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.media.MediaPlayer;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Display;
+import android.view.SurfaceHolder;
 import android.view.WindowManager;
 import android.widget.TextView;
 
@@ -85,6 +87,7 @@ public class PresentationService extends CastRemoteDisplayLocalService {
         }
     }
 
+
     /**
      * Utility method to allow the user to change the cube color.
      */
@@ -126,8 +129,34 @@ public class PresentationService extends CastRemoteDisplayLocalService {
             firstScreenSurfaceView.setZOrderMediaOverlay(true);
             // Enable anti-aliasing
             firstScreenSurfaceView.setEGLConfigChooser(new CustomConfigChooser());
+
             mCubeRenderer = new com.example.castremotedisplay.CubeRenderer();
             firstScreenSurfaceView.setRenderer(mCubeRenderer);
+//            android.os.Debug.waitForDebugger();
+            Log.i("mmarinov", "onCreate 1");
+            firstScreenSurfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
+                @Override
+                public void surfaceCreated(SurfaceHolder holder) {
+                    Log.i("mmarinov", "surfaceCreated");
+
+                }
+
+                @Override
+                public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+                    Log.i("mmarinov", "surfaceChanged");
+
+                    Intent intent = new Intent("com.samsung.mps.gvrf");
+//                    intent.getParcelableExtra()
+                    intent.putExtra("surface", holder.getSurface());
+                    getContext().sendStickyBroadcast(intent);
+                }
+
+                @Override
+                public void surfaceDestroyed(SurfaceHolder holder) {
+                    Log.i("mmarinov", "surfaceDestroyed");
+                }
+            });
+            Log.i("mmarinov", "onCreate 2");
         }
 
         /**

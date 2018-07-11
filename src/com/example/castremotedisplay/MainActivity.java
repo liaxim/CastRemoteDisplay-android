@@ -63,8 +63,8 @@ public class MainActivity extends ActionBarActivity {
         titleTextView.setTypeface(typeface);
 
         mMediaRouteSelector = new MediaRouteSelector.Builder()
-                .addControlCategory(
-                        CastMediaControlIntent.categoryForCast(getString(R.string.app_id)))
+                .addControlCategory(CastMediaControlIntent.categoryForCast(getString(R.string.app_id)))
+                .addControlCategory(CastMediaControlIntent.categoryForRemotePlayback(getString(R.string.app_id)))
                 .build();
         mMediaRouter = MediaRouter.getInstance(getApplicationContext());
 
@@ -89,7 +89,7 @@ public class MainActivity extends ActionBarActivity {
     protected void onStart() {
         super.onStart();
         mMediaRouter.addCallback(mMediaRouteSelector, mMediaRouterCallback,
-                MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY);
+                MediaRouter.CALLBACK_FLAG_PERFORM_ACTIVE_SCAN | MediaRouter.CALLBACK_FLAG_UNFILTERED_EVENTS);
     }
 
     @Override
