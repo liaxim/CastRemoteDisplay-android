@@ -21,12 +21,14 @@ import com.google.android.gms.cast.CastRemoteDisplayLocalService;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.SurfaceTexture;
 import android.graphics.Typeface;
 import android.media.MediaPlayer;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Display;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.WindowManager;
 import android.widget.TextView;
@@ -103,6 +105,8 @@ public class PresentationService extends CastRemoteDisplayLocalService {
      * presentation's own {@link Context} whenever we load resources.
      * </p>
      */
+    Surface surface;
+    SurfaceTexture surfaceTexture;
     private class FirstScreenPresentation extends CastPresentation {
 
         private final String TAG = "FirstScreenPresentation";
@@ -122,7 +126,7 @@ public class PresentationService extends CastRemoteDisplayLocalService {
             Typeface typeface = Typeface.createFromAsset(getAssets(), "fonts/Roboto-Light.ttf");
             titleTextView.setTypeface(typeface);
 
-            GLSurfaceView firstScreenSurfaceView = (GLSurfaceView) findViewById(R.id.surface_view);
+            final GLSurfaceView firstScreenSurfaceView = (GLSurfaceView) findViewById(R.id.surface_view);
             // Create an OpenGL ES 2.0 context.
             firstScreenSurfaceView.setEGLContextClientVersion(2);
             // Allow UI elements above this surface; used for text overlay
@@ -133,7 +137,9 @@ public class PresentationService extends CastRemoteDisplayLocalService {
             mCubeRenderer = new com.example.castremotedisplay.CubeRenderer();
             firstScreenSurfaceView.setRenderer(mCubeRenderer);
 //            android.os.Debug.waitForDebugger();
+
             Log.i("mmarinov", "onCreate 1");
+
             firstScreenSurfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
                 @Override
                 public void surfaceCreated(SurfaceHolder holder) {
@@ -142,12 +148,27 @@ public class PresentationService extends CastRemoteDisplayLocalService {
                 }
 
                 @Override
-                public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+                public void surfaceChanged(final SurfaceHolder holder, int format, int width, int height) {
                     Log.i("mmarinov", "surfaceChanged");
+
+                    surfaceTexture = new SurfaceTexture(11);
+                    surfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
+                        @Override
+                        public void onFrameAvailable(final SurfaceTexture surfaceTexture) {
+                            Log.i("mmarinov", "onFrameAvailable 111");
+                            firstScreenSurfaceView.queueEvent(new Runnable() {
+                                @Override
+                                public void run() {
+                                    surfaceTexture.updateTexImage();
+                                }
+                            });
+                        }
+                    });
+                    surface = new Surface(surfaceTexture);
 
                     Intent intent = new Intent("com.samsung.mps.gvrf");
 //                    intent.getParcelableExtra()
-                    intent.putExtra("surface", holder.getSurface());
+                    intent.putExtra("surface", surface);
                     getContext().sendStickyBroadcast(intent);
                 }
 
