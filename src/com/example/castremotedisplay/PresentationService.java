@@ -106,8 +106,8 @@ public class PresentationService extends CastRemoteDisplayLocalService {
      * presentation's own {@link Context} whenever we load resources.
      * </p>
      */
-    Surface surface;
-    SurfaceTexture surfaceTexture;
+    private Surface mSurface;
+
     private class FirstScreenPresentation extends CastPresentation {
 
         private final String TAG = "FirstScreenPresentation";
@@ -122,36 +122,37 @@ public class PresentationService extends CastRemoteDisplayLocalService {
 
             final TextureView textureView = new TextureView(getContext());
             setContentView(textureView);
+            textureView.getLayoutParams().height = 1024;
+            textureView.getLayoutParams().width = 1024;
 
-//            TextView titleTextView = (TextView) findViewById(R.id.title);
-//            // Use TrueType font to get best looking text on remote display
-//            Typeface typeface = Typeface.createFromAsset(getAssets(), "fonts/Roboto-Light.ttf");
-//            titleTextView.setTypeface(typeface);
-//
-//            final GLSurfaceView firstScreenSurfaceView = (GLSurfaceView) findViewById(R.id.surface_view);
-//            // Create an OpenGL ES 2.0 context.
-//            firstScreenSurfaceView.setEGLContextClientVersion(2);
-//            // Allow UI elements above this surface; used for text overlay
-//            firstScreenSurfaceView.setZOrderMediaOverlay(true);
-//            // Enable anti-aliasing
-//            firstScreenSurfaceView.setEGLConfigChooser(new CustomConfigChooser());
-//
-//            mCubeRenderer = new com.example.castremotedisplay.CubeRenderer();
-//            firstScreenSurfaceView.setRenderer(mCubeRenderer);
-//            android.os.Debug.waitForDebugger();
+            textureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
+                @Override
+                public void onSurfaceTextureAvailable(final SurfaceTexture surface, int width, int height) {
+                    Log.i("mmarinov", "onSurfaceTextureAvailable");
 
-            Log.i("mmarinov", "onCreate 1");
+                    mSurface = new Surface(surface);
 
-            surfaceTexture = new SurfaceTexture(11);
-            surface = new Surface(surfaceTexture);
+                    Intent intent = new Intent("com.samsung.mps.gvrf");
+                    intent.putExtra("surface", mSurface);
+                    getContext().sendStickyBroadcast(intent);
+                }
 
-            textureView.setSurfaceTexture(surfaceTexture);
+                @Override
+                public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+                    Log.i("mmarinov", "onSurfaceTextureSizeChanged");
+                }
 
-            Intent intent = new Intent("com.samsung.mps.gvrf");
-            intent.putExtra("surface", surface);
-            getContext().sendStickyBroadcast(intent);
+                @Override
+                public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+                    Log.i("mmarinov", "onSurfaceTextureDestroyed");
+                    return false;
+                }
 
-            Log.i("mmarinov", "onCreate 2");
+                @Override
+                public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+                    Log.i("mmarinov", "onSurfaceTextureUpdated");                    
+                }
+            });
         }
 
         /**
