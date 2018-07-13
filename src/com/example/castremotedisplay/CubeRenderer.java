@@ -35,7 +35,6 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
     private static final float ANGLE_INCREMENT = 1.2f;
     private static final boolean CALCULATE_FPS = false;
 
-    private Cube mCube;
     private float mAngle;
     private boolean mChangeColor;
     private long mLastTime;
@@ -80,7 +79,6 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         Matrix.multiplyMM(mMVMatrix, 0, mViewMatrix, 0, mMMatrix, 0);
         Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mMVMatrix, 0);
 
-        mCube.draw(mMVPMatrix, mChangeColor);
 
         // Configure matrices for second cube
         Matrix.setIdentityM(mMMatrix, 0);
@@ -92,8 +90,6 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
         Matrix.multiplyMM(mMVMatrix, 0, mViewMatrix, 0, mMMatrix, 0);
         Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mMVMatrix, 0);
-
-        mCube.draw(mMVPMatrix, mChangeColor);
 
         mAngle += ANGLE_INCREMENT;
     }
@@ -124,9 +120,6 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         // Set anti-aliasing
         GLES20.glEnable(GLES20.GL_BLEND);
         GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
-
-        // Important to initialize the graphics on the GL thread
-        mCube = new Cube();
     }
 
     /**

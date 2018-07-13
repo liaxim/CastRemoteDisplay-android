@@ -16,23 +16,20 @@
 
 package com.example.castremotedisplay;
 
-import com.google.android.gms.cast.CastPresentation;
-import com.google.android.gms.cast.CastRemoteDisplayLocalService;
-
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.SurfaceTexture;
-import android.graphics.Typeface;
 import android.media.MediaPlayer;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Display;
 import android.view.Surface;
-import android.view.SurfaceHolder;
 import android.view.TextureView;
 import android.view.WindowManager;
-import android.widget.TextView;
+
+import com.google.android.gms.cast.CastPresentation;
+import com.google.android.gms.cast.CastRemoteDisplayLocalService;
 
 import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
@@ -107,10 +104,9 @@ public class PresentationService extends CastRemoteDisplayLocalService {
      * </p>
      */
     private Surface mSurface;
+    private Intent mStickyBroadcast;
 
     private class FirstScreenPresentation extends CastPresentation {
-
-        private final String TAG = "FirstScreenPresentation";
 
         public FirstScreenPresentation(Context context, Display display) {
             super(context, display);
@@ -130,11 +126,12 @@ public class PresentationService extends CastRemoteDisplayLocalService {
                 public void onSurfaceTextureAvailable(final SurfaceTexture surface, int width, int height) {
                     Log.i("mmarinov", "onSurfaceTextureAvailable");
 
+                    surface.setDefaultBufferSize(1024, 1024);
                     mSurface = new Surface(surface);
 
-                    Intent intent = new Intent("com.samsung.mps.gvrf");
-                    intent.putExtra("surface", mSurface);
-                    getContext().sendStickyBroadcast(intent);
+                    mStickyBroadcast = new Intent("com.samsung.mps.gvrf");
+                    mStickyBroadcast.putExtra("surface", mSurface);
+                    getContext().sendStickyBroadcast(mStickyBroadcast);
                 }
 
                 @Override
@@ -152,7 +149,17 @@ public class PresentationService extends CastRemoteDisplayLocalService {
                 public void onSurfaceTextureUpdated(SurfaceTexture surface) {
                     Log.i("mmarinov", "onSurfaceTextureUpdated");                    
                 }
+
             });
+        }
+
+        @Override
+        protected void onStop() {
+            super.onStop();
+
+            if (null != mStickyBroadcast) {
+                getContext().removeStickyBroadcast(mStickyBroadcast);
+            }
         }
 
         /**
