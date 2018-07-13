@@ -18,6 +18,7 @@ package com.example.castremotedisplay;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
 import android.opengl.GLSurfaceView;
@@ -26,7 +27,10 @@ import android.util.Log;
 import android.view.Display;
 import android.view.Surface;
 import android.view.TextureView;
+import android.view.View;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 
 import com.google.android.gms.cast.CastPresentation;
 import com.google.android.gms.cast.CastRemoteDisplayLocalService;
@@ -34,6 +38,8 @@ import com.google.android.gms.cast.CastRemoteDisplayLocalService;
 import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLDisplay;
+
+import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 
 /**
  * Service to keep the remote display running even when the app goes into the background
@@ -105,6 +111,8 @@ public class PresentationService extends CastRemoteDisplayLocalService {
      */
     private Surface mSurface;
     private Intent mStickyBroadcast;
+    private ImageView mImageView;
+    private TextureView mTextureView;
 
     private class FirstScreenPresentation extends CastPresentation {
 
@@ -116,16 +124,26 @@ public class PresentationService extends CastRemoteDisplayLocalService {
         protected void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
 
-            final TextureView textureView = new TextureView(getContext());
-            setContentView(textureView);
-            textureView.getLayoutParams().height = 1024;
-            textureView.getLayoutParams().width = 1024;
+            final FrameLayout frameLayout = new FrameLayout(getContext());
+            frameLayout.setBackgroundColor(Color.BLACK);
+            mTextureView = new TextureView(getContext());
+            frameLayout.addView(mTextureView);
+            mImageView = new ImageView(getContext());
+            mImageView.setImageResource(R.drawable.background);
+            mImageView.setScaleType(ImageView.ScaleType.FIT_XY);
+            frameLayout.addView(mImageView);
 
-            textureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
+            setContentView(frameLayout);
+
+            frameLayout.getLayoutParams().width = frameLayout.getLayoutParams().height = MATCH_PARENT;
+            mImageView.getLayoutParams().width = frameLayout.getLayoutParams().height = MATCH_PARENT;
+            mTextureView.getLayoutParams().height = 1024;
+            mTextureView.getLayoutParams().width = 1024;
+
+            mTextureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
                 @Override
                 public void onSurfaceTextureAvailable(final SurfaceTexture surface, int width, int height) {
                     Log.i("mmarinov", "onSurfaceTextureAvailable");
-
                     surface.setDefaultBufferSize(1024, 1024);
                     mSurface = new Surface(surface);
 
@@ -142,14 +160,17 @@ public class PresentationService extends CastRemoteDisplayLocalService {
                 @Override
                 public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
                     Log.i("mmarinov", "onSurfaceTextureDestroyed");
+                    mTextureView.setVisibility(View.INVISIBLE);
+                    mImageView.setVisibility(View.VISIBLE);
                     return false;
                 }
 
                 @Override
                 public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-                    Log.i("mmarinov", "onSurfaceTextureUpdated");                    
+                    Log.i("mmarinov", "onSurfaceTextureUpdated");
+                    mImageView.setVisibility(View.INVISIBLE);
+                    mTextureView.setVisibility(View.VISIBLE);
                 }
-
             });
         }
 
