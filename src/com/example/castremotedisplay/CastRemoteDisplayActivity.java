@@ -16,11 +16,6 @@
 
 package com.example.castremotedisplay;
 
-import com.google.android.gms.cast.CastDevice;
-import com.google.android.gms.cast.CastMediaControlIntent;
-import com.google.android.gms.cast.CastRemoteDisplayLocalService;
-import com.google.android.gms.common.api.Status;
-
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Bundle;
@@ -37,6 +32,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
+
+import com.google.android.gms.cast.CastDevice;
+import com.google.android.gms.cast.CastMediaControlIntent;
+import com.google.android.gms.cast.CastRemoteDisplayLocalService;
+import com.google.android.gms.common.api.Status;
 
 /**
  * <h3>CastRemoteDisplayActivity</h3>
@@ -89,9 +89,6 @@ public class CastRemoteDisplayActivity extends ActionBarActivity {
                 // Change the remote display animation color when the button is clicked
                 PresentationService presentationService
                         = (PresentationService) CastRemoteDisplayLocalService.getInstance();
-                if (presentationService != null) {
-                    presentationService.changeColor();
-                }
             }
         });
 
@@ -172,26 +169,6 @@ public class CastRemoteDisplayActivity extends ActionBarActivity {
                 getApplicationContext(), R.string.init_error, Toast.LENGTH_SHORT);
         mMediaRouter.selectRoute(mMediaRouter.getDefaultRoute());
         toast.show();
-    }
-
-    /**
-     * Utility method to identify if the route information corresponds to the currently
-     * selected device.
-     *
-     * @param info The route information
-     * @return Whether the route information corresponds to the currently selected device.
-     */
-    private boolean isCurrentDevice(RouteInfo info) {
-        if (mCastDevice == null) {
-            // No device selected
-            return false;
-        }
-        CastDevice device = CastDevice.getFromBundle(info.getExtras());
-        if (!device.getDeviceId().equals(mCastDevice.getDeviceId())) {
-            // The callback is for a different device
-            return false;
-        }
-        return true;
     }
 
     private final MediaRouter.Callback mMediaRouterCallback =

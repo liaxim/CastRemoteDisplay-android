@@ -21,7 +21,6 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
-import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Display;
@@ -35,10 +34,6 @@ import android.widget.ImageView;
 import com.google.android.gms.cast.CastPresentation;
 import com.google.android.gms.cast.CastRemoteDisplayLocalService;
 
-import javax.microedition.khronos.egl.EGL10;
-import javax.microedition.khronos.egl.EGLConfig;
-import javax.microedition.khronos.egl.EGLDisplay;
-
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 
 /**
@@ -51,7 +46,6 @@ public class PresentationService extends CastRemoteDisplayLocalService {
     // First screen
     private CastPresentation mPresentation;
     private MediaPlayer mMediaPlayer;
-    private CubeRenderer mCubeRenderer;
 
     @Override
     public void onCreate() {
@@ -91,14 +85,6 @@ public class PresentationService extends CastRemoteDisplayLocalService {
             Log.e(TAG, "Unable to show presentation, display was removed.", ex);
             dismissPresentation();
         }
-    }
-
-
-    /**
-     * Utility method to allow the user to change the cube color.
-     */
-    public void changeColor() {
-        mCubeRenderer.changeColor();
     }
 
     /**
@@ -143,7 +129,6 @@ public class PresentationService extends CastRemoteDisplayLocalService {
             mTextureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
                 @Override
                 public void onSurfaceTextureAvailable(final SurfaceTexture surface, int width, int height) {
-                    Log.i("mmarinov", "onSurfaceTextureAvailable");
                     surface.setDefaultBufferSize(1024, 1024);
                     mSurface = new Surface(surface);
 
@@ -154,12 +139,10 @@ public class PresentationService extends CastRemoteDisplayLocalService {
 
                 @Override
                 public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-                    Log.i("mmarinov", "onSurfaceTextureSizeChanged");
                 }
 
                 @Override
                 public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-                    Log.i("mmarinov", "onSurfaceTextureDestroyed");
                     mTextureView.setVisibility(View.INVISIBLE);
                     mImageView.setVisibility(View.VISIBLE);
                     return false;
@@ -167,7 +150,6 @@ public class PresentationService extends CastRemoteDisplayLocalService {
 
                 @Override
                 public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-                    Log.i("mmarinov", "onSurfaceTextureUpdated");
                     mImageView.setVisibility(View.INVISIBLE);
                     mTextureView.setVisibility(View.VISIBLE);
                 }
@@ -183,101 +165,6 @@ public class PresentationService extends CastRemoteDisplayLocalService {
             }
         }
 
-        /**
-         * OpenGL config to enable custom anti-aliasing
-         */
-        private final class CustomConfigChooser implements GLSurfaceView.EGLConfigChooser {
-
-            private int[] mValue = new int[1];
-            protected int mRedSize = 8;
-            protected int mGreenSize = 8;
-            protected int mBlueSize = 8;
-            protected int mAlphaSize = 8;
-            protected int mDepthSize = 16;
-            protected int mStencilSize = 0;
-
-            @Override
-            public EGLConfig chooseConfig(EGL10 egl, EGLDisplay display) {
-                int[] configSpec = {
-                        EGL10.EGL_RED_SIZE, mRedSize,
-                        EGL10.EGL_GREEN_SIZE, mGreenSize,
-                        EGL10.EGL_BLUE_SIZE, mBlueSize,
-                        EGL10.EGL_ALPHA_SIZE, mAlphaSize,
-                        EGL10.EGL_DEPTH_SIZE, mDepthSize,
-                        EGL10.EGL_STENCIL_SIZE, mStencilSize,
-                        EGL10.EGL_RENDERABLE_TYPE, 4,
-                        EGL10.EGL_SAMPLE_BUFFERS, 1,
-                        EGL10.EGL_SAMPLES, 4,
-                        EGL10.EGL_NONE
-                };
-                int[] num_config = new int[1];
-                if (!egl.eglChooseConfig(display, configSpec, null, 0, num_config)) {
-                    throw new IllegalArgumentException("eglChooseConfig1 failed");
-                }
-
-                int numConfigs = num_config[0];
-
-                if (numConfigs <= 0) {
-                    // Don't do anti-aliasing
-                    configSpec = new int[]{
-                            EGL10.EGL_RED_SIZE, mRedSize,
-                            EGL10.EGL_GREEN_SIZE, mGreenSize,
-                            EGL10.EGL_BLUE_SIZE, mBlueSize,
-                            EGL10.EGL_ALPHA_SIZE, mAlphaSize,
-                            EGL10.EGL_DEPTH_SIZE, mDepthSize,
-                            EGL10.EGL_STENCIL_SIZE, mStencilSize,
-                            EGL10.EGL_RENDERABLE_TYPE, 4,
-                            EGL10.EGL_NONE
-                    };
-
-                    if (!egl.eglChooseConfig(display, configSpec, null, 0, num_config)) {
-                        throw new IllegalArgumentException("eglChooseConfig2 failed");
-                    }
-                    numConfigs = num_config[0];
-
-                    if (numConfigs <= 0) {
-                        throw new IllegalArgumentException("No configs match configSpec");
-                    }
-                }
-
-                EGLConfig[] configs = new EGLConfig[numConfigs];
-                if (!egl.eglChooseConfig(display, configSpec, configs, numConfigs, num_config)) {
-                    throw new IllegalArgumentException("eglChooseConfig3 failed");
-                }
-                EGLConfig config = findConfig(egl, display, configs);
-                if (config == null) {
-                    throw new IllegalArgumentException("No config chosen");
-                }
-                return config;
-            }
-
-            private EGLConfig findConfig(EGL10 egl, EGLDisplay display, EGLConfig[] configs) {
-                for (EGLConfig config : configs) {
-                    int d = findConfigAttrib(egl, display, config, EGL10.EGL_DEPTH_SIZE, 0);
-                    int s = findConfigAttrib(egl, display, config, EGL10.EGL_STENCIL_SIZE, 0);
-                    if ((d >= mDepthSize) && (s >= mStencilSize)) {
-                        int r = findConfigAttrib(egl, display, config, EGL10.EGL_RED_SIZE, 0);
-                        int g = findConfigAttrib(egl, display, config, EGL10.EGL_GREEN_SIZE, 0);
-                        int b = findConfigAttrib(egl, display, config, EGL10.EGL_BLUE_SIZE, 0);
-                        int a = findConfigAttrib(egl, display, config, EGL10.EGL_ALPHA_SIZE, 0);
-                        if ((r == mRedSize) && (g == mGreenSize) && (b == mBlueSize) && (a
-                                == mAlphaSize)) {
-                            return config;
-                        }
-                    }
-                }
-                return null;
-            }
-
-            private int findConfigAttrib(EGL10 egl, EGLDisplay display, EGLConfig config,
-                    int attribute,
-                    int defaultValue) {
-                if (egl.eglGetConfigAttrib(display, config, attribute, mValue)) {
-                    return mValue[0];
-                }
-                return defaultValue;
-            }
-        }
     }
 
 }
