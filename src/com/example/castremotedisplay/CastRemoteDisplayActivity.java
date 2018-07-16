@@ -30,7 +30,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.gms.cast.CastDevice;
@@ -80,17 +79,6 @@ public class CastRemoteDisplayActivity extends ActionBarActivity {
         setContentView(R.layout.second_screen_layout);
         setFullScreen();
         setupActionBar();
-
-        // Local UI
-        final Button button = (Button) findViewById(R.id.button);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Change the remote display animation color when the button is clicked
-                PresentationService presentationService
-                        = (PresentationService) CastRemoteDisplayLocalService.getInstance();
-            }
-        });
 
         mMediaRouter = MediaRouter.getInstance(getApplicationContext());
         mMediaRouteSelector = new MediaRouteSelector.Builder()
